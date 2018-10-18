@@ -12,6 +12,23 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type BasicCard struct {
+	Title         string     `json:"title,omitempty"`         // Optional. The title of the card.
+	Subtitle      string     `json:"subtitle,omitempty"`      // Optional. The subtitle of the card.
+	FormattedText string     `json:"formattedText,omitempty"` // Required, unless image is present. The body text of the card.
+	Image         *CardImage `json:"image,omitempty"`         // Optional. The image for the card.
+	// Buttons       []CardButton `json:"buttons,omitempty"`       // Optional. The collection of card buttons.
+}
+
+func (bc BasicCard) GetKey() string {
+	return "basicCard"
+}
+
+type CardImage struct {
+	ImageURI          string `json:"imageUri,omitempty"`
+	AccessibilityText string `json:accessibility_text,omitempty`
+}
+
 func webhook(c *gin.Context) {
 
 	var err error
@@ -57,14 +74,29 @@ func random(c *gin.Context, dfr *df.Request) {
 	out := fmt.Sprintf("I found that cocktail : %s", d.StrDrink)
 	dff := &df.Fulfillment{
 		FulfillmentMessages: df.Messages{
-			{RichMessage: df.Text{Text: []string{out}}},
+			{
+				RichMessage: df.Text{
+					Text: []string{out},
+				},
+			},
+			// df.ForGoogle(cardFromDrink(d)),
 			df.ForGoogle(df.SingleSimpleResponse(out, out)),
 		},
 	}
 
 	c.JSON(http.StatusOK, dff)
+}
 
-	c.JSON(http.StatusOK, gin.H{})
+func cardFromDrink(d *cocktail.FullDrink) BasicCard {
+	card := BasicCard{
+		Title:         d.StrDrink,
+		FormattedText: d.StrInstructions,
+		Image: &CardImage{
+			ImageURI:          d.StrDrinkThumb,
+			AccessibilityText: "cocktail",
+		},
+	}
+	return card
 }
 
 func main() {
