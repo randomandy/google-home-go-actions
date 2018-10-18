@@ -29,6 +29,12 @@ type CardImage struct {
 	AccessibilityText string `json:accessibility_text,omitempty`
 }
 
+type searchParams struct {
+	Alcohol   string `json:"alcohol"`
+	DrinkType string `json:"drink-type"`
+	Name      string `json:"name"`
+}
+
 func webhook(c *gin.Context) {
 
 	var err error
@@ -57,7 +63,18 @@ func webhook(c *gin.Context) {
 }
 
 func search(c *gin.Context, dfr *df.Request) {
+	var err error
+	var p searchParams
 
+	if err = dfr.GetParams(&p); err != nil {
+		logrus.WithError(err).Error("Couldn't get parameters")
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	spew.Dump(p)
+
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 func random(c *gin.Context, dfr *df.Request) {
