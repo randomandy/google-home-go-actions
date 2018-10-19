@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	// "github.com/davecgh/go-spew/spew"
 	"github.com/Depado/articles/code/dialogflow/cocktail"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gin-gonic/gin"
 	df "github.com/leboncoin/dialogflow-go-webhook"
 	"github.com/sirupsen/logrus"
@@ -50,10 +50,12 @@ func webhook(c *gin.Context) {
 	switch dfr.QueryResult.Action {
 	case "search":
 		log.Println("Search action detected")
-		c.JSON(http.StatusOK, gin.H{})
+		search(c, dfr)
 	case "random":
 		log.Println("Random action detected")
 		random(c, dfr)
+	case "search.specify":
+		log.Println("Search Specify detected")
 	default:
 		log.Println("Unknown action")
 		c.AbortWithStatus(http.StatusNotFound)
@@ -67,6 +69,21 @@ func search(c *gin.Context, dfr *df.Request) {
 	var p searchParams
 
 	if err = dfr.GetParams(&p); err != nil {
+		logrus.WithError(err).Error("Couldn't get parameters")
+		c.AbortWithStatus(http.StatusBadRequest)
+		return
+	}
+
+	// spew.Dump(p)
+
+	c.JSON(http.StatusOK, gin.H{})
+}
+
+func specify(c *gin.Context, dfr *df.Request) {
+	var err error
+	var p searchParams
+
+	if err = dfr.GetContext("Search-followup", &p); err != nil {
 		logrus.WithError(err).Error("Couldn't get parameters")
 		c.AbortWithStatus(http.StatusBadRequest)
 		return
