@@ -129,5 +129,6 @@ func random(c *gin.Context, wr dialogflow.WebhookRequest)  {
 		},
 	}
 
-	c.JSON(http.StatusOK, fullfillment)
+	c.PureJSON(http.StatusOK, fullfillment)
+	//c.JSON(http.StatusOK, fullfillment)
 }
