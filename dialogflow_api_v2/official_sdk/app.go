@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"github.com/gin-gonic/gin"
 	"github.com/golang/protobuf/jsonpb"
 	"github.com/sirupsen/logrus"
@@ -39,6 +40,9 @@ func handleWebhook(c *gin.Context) {
 
 func main() {
 	r := gin.Default()
+
+	r.Use(gin.Logger())
+
 	r.POST("/", handleWebhook)
 	if err := r.Run("127.0.0.1:8008"); err != nil {
 		panic(err)
@@ -80,9 +84,9 @@ func search(c *gin.Context, wr dialogflow.WebhookRequest) {
 func random(c *gin.Context, wr dialogflow.WebhookRequest)  {
 	log.Println("Random action detected")
 
-	//textMessage := dialogflow.Intent_Message_Text{
-	//	Text: []string{"foo", "bar"},
-	//}
+	textMessage := dialogflow.Intent_Message_Text{
+		Text: []string{"foo", "bar"},
+	}
 
 	//basicCard := dialogflow.Intent_Message_BasicCard{
 	//	Title: "My Title",
@@ -109,26 +113,31 @@ func random(c *gin.Context, wr dialogflow.WebhookRequest)  {
 			//		BasicCard: &basicCard,
 			//	},
 			//},
-			//{
-			//	Message: &dialogflow.Intent_Message_Text_{
-			//		Text: &textMessage,
-			//	},
-			//},
 			{
-				Message: &dialogflow.Intent_Message_SimpleResponses_{
-					SimpleResponses: &dialogflow.Intent_Message_SimpleResponses{
-						SimpleResponses: []*dialogflow.Intent_Message_SimpleResponse{
-							{
-								TextToSpeech: "Foobar",
-								DisplayText: "Barfoo",
-							},
-						},
-					},
+				Message: &dialogflow.Intent_Message_Text_{
+					Text: &textMessage,
 				},
 			},
+			//{
+			//	Message: &dialogflow.Intent_Message_SimpleResponses_{
+			//		SimpleResponses: &dialogflow.Intent_Message_SimpleResponses{
+			//			SimpleResponses: []*dialogflow.Intent_Message_SimpleResponse{
+			//				{
+			//					TextToSpeech: "Foobar",
+			//					DisplayText: "Barfoo",
+			//				},
+			//			},
+			//		},
+			//	},
+			//},
 		},
 	}
 
-	c.PureJSON(http.StatusOK, fullfillment)
-	//c.JSON(http.StatusOK, fullfillment)
+
+
+	//c.PureJSON(http.StatusOK, fullfillment)
+	foo, _ := json.Marshal(fullfillment)
+	log.Println(string(foo))
+	c.JSON(http.StatusOK, fullfillment)
+	//c.ProtoBuf(http.StatusOK, fullfillment)
 }
